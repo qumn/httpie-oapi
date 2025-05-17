@@ -1,0 +1,17 @@
+[package]
+name = "httpie-oapi"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.38", features = [
+  "suggestions",
+  "color",
+  "wrap_help",
+  "cargo",
+  "derive",
+] }
+openapiv3 = "2.0.0"
+serde = "1.0.219"
+serde_json = "1.0.140"
+shell-words = "1.1.0"
