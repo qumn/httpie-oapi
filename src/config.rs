@@ -125,15 +125,11 @@ impl Config {
 		}
 	}
 
-	pub fn list_apis(&self) -> Vec<(&String, &ApiSpec)> {
-		self.apis.iter().collect()
+	pub fn list_apis(&self) -> Vec<&ApiSpec> {
+		self.apis.values().collect()
 	}
 
 	pub fn get_api(&self, name: &str) -> Option<&ApiSpec> {
 		self.apis.get(name)
-	}
-
-	pub fn get_api_mut(&mut self, name: &str) -> Option<&mut ApiSpec> {
-		self.apis.get_mut(name)
 	}
 }

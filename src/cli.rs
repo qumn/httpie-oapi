@@ -84,9 +84,9 @@ pub struct ParamArgs {
 
 #[derive(Args, Debug)]
 pub struct CompleteArgs {
-	/// Name of the API service
+	/// Name of the API service (optional)
 	#[arg(short, long)]
-	pub name: String,
+	pub name: Option<String>,
 
 	/// The current command line input
 	#[arg(long, value_name = "LINE")]

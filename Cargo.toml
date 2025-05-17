@@ -20,3 +20,6 @@ url = "2.5"
 reqwest = { version = "0.12", features = ["blocking"] }
 toml = "0.8.22"
 anyhow = "1.0.98"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"

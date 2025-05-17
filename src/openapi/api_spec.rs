@@ -2,6 +2,7 @@ use super::EndPoints;
 use crate::config::Config;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
 use url::Url;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,35 +15,36 @@ pub struct ApiSpec {
 	pub base_url: String,
 	/// Cached endpoints, loaded on demand
 	#[serde(skip)]
-	endpoints: Option<EndPoints>,
+	endpoints: RefCell<Option<EndPoints>>,
 }
 
 impl ApiSpec {
 	/// Create a new ApiSpec instance
 	pub fn new(name: String, url: String, base_url: String) -> Self {
-		Self { name, url, base_url, endpoints: None }
+		Self { name, url, base_url, endpoints: RefCell::new(None) }
 	}
 
 	/// Get the endpoints for this API spec. If cached in memory, return that.
 	/// Otherwise try to load from file cache, and if that fails, download and parse.
-	pub fn get_endpoints(&mut self) -> &EndPoints {
-		if self.endpoints.is_none() {
+	pub fn get_endpoints(&self) -> EndPoints {
+		if self.endpoints.borrow().is_none() {
 			let endpoints_cache_path = Config::get_endpoints_cache_path(&self.name);
 
 			// Try to load from file cache first
 			if endpoints_cache_path.exists() {
 				if let Ok(endpoints) = EndPoints::try_from_json(&endpoints_cache_path) {
-					self.endpoints = Some(endpoints);
+					*self.endpoints.borrow_mut() = Some(endpoints);
 				}
 			}
 
 			// If still none, download and parse OpenAPI spec
-			if self.endpoints.is_none() {
-				self.endpoints = Some(self.refresh_endpoints_cache());
+			if self.endpoints.borrow().is_none() {
+				let endpoints = self.refresh_endpoints_cache();
+				*self.endpoints.borrow_mut() = Some(endpoints);
 			}
 		}
 
-		self.endpoints.as_ref().unwrap()
+		self.endpoints.borrow().as_ref().unwrap().clone()
 	}
 
 	/// Force download the OpenAPI spec and update both file and memory cache

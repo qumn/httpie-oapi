@@ -6,8 +6,8 @@ function __httpie_openapi_complete
 	echo begin complete >~/httpie-complete.log
     set -l cmdline (commandline -cp)
     set -l cursor (commandline -C)
-	echo "command: " "httpie-oapi complete  --name $HTTPIE_API_NAME --line "$cmdline" --cursor-pos $cursor" >~/httpie-complete.log
-    httpie-oapi complete --name $HTTPIE_API_NAME --line "$cmdline" --cursor-pos $cursor
+	echo "command: " "httpie-oapi complete --line "$cmdline" --cursor-pos $cursor" >~/httpie-complete.log
+    httpie-oapi complete --line "$cmdline" --cursor-pos $cursor
 end
 
 # Set default API name (will be enhanced in future commits)
