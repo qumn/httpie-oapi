@@ -1,4 +1,4 @@
-use clap::{ArgAction, Args, Parser, ValueEnum};
+use clap::{ArgAction, Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser, Debug)]
 #[command(name = "httpie-oapi", author, version, about = "OpenAPI-aware completion for HTTPie")]
@@ -17,6 +17,21 @@ pub enum Commands {
 	Complete(CompleteArgs),
 	/// Generate shell completion scripts
 	Completions(CompletionsArgs),
+	/// Manage OpenAPI specifications
+	#[command(subcommand)]
+	Spec(SpecCommand),
+}
+
+#[derive(Subcommand, Debug)]
+pub enum SpecCommand {
+	/// Save (add or update) an API specification
+	Save(SaveApiArgs),
+	/// Remove an API specification
+	Remove(RemoveApiArgs),
+	/// List all registered API specifications
+	List(ListApiArgs),
+	/// Refresh OpenAPI cache for specified APIs
+	Refresh(RefreshApiArgs),
 }
 
 #[derive(Copy, Clone, Debug, ValueEnum)]
@@ -27,9 +42,9 @@ pub enum Shell {
 
 #[derive(Args, Debug)]
 pub struct PathArgs {
-	/// Path to the OpenAPI JSON file
-	#[arg(short, long, value_name = "FILE")]
-	pub file: String,
+	/// Name of the API service
+	#[arg(short, long, value_name = "NAME")]
+	pub name: String,
 
 	/// Optional filter to match specific paths
 	#[arg(long, value_name = "PATTERN")]
@@ -46,9 +61,9 @@ pub struct PathArgs {
 
 #[derive(Args, Debug)]
 pub struct ParamArgs {
-	/// Path to the OpenAPI JSON file
-	#[arg(short, long, value_name = "FILE")]
-	pub file: String,
+	/// Name of the API service
+	#[arg(short, long, value_name = "NAME")]
+	pub name: String,
 
 	/// The API path to extract parameters from (e.g. `/users/{id}`)
 	#[arg(long, value_name = "PATH")]
@@ -69,9 +84,9 @@ pub struct ParamArgs {
 
 #[derive(Args, Debug)]
 pub struct CompleteArgs {
-	/// OpenAPI JSON file path
+	/// Name of the API service
 	#[arg(short, long)]
-	pub file: String,
+	pub name: String,
 
 	/// The current command line input
 	#[arg(long, value_name = "LINE")]
@@ -91,3 +106,37 @@ pub struct CompletionsArgs {
 	/// Output file path, default to stdout
 	pub output: Option<String>,
 }
+
+#[derive(Args, Debug)]
+pub struct SaveApiArgs {
+	/// Name of the API service
+	pub name: String,
+	/// URL of the OpenAPI/Swagger specification
+	pub url: String,
+	/// Base URL for the API service
+	#[arg(long)]
+	pub base_url: String,
+	/// Force update if the API already exists
+	#[arg(long, action = ArgAction::SetTrue)]
+	pub force: bool,
+}
+
+#[derive(Args, Debug)]
+pub struct RefreshApiArgs {
+	/// Names of the APIs to refresh cache. If not provided, refreshes all APIs.
+	pub names: Vec<String>,
+}
+
+#[derive(Args, Debug)]
+pub struct RemoveApiArgs {
+	/// Name of the API service to remove
+	pub name: String,
+}
+
+#[derive(Args, Debug)]
+pub struct ListApiArgs {
+	/// Show detailed information
+	#[arg(short, long)]
+	pub detailed: bool,
+}
+

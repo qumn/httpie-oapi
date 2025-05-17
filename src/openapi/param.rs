@@ -1,6 +1,7 @@
 use openapiv3::Parameter;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ParamSource {
 	Query,
 	Body,
@@ -32,7 +33,7 @@ impl From<&str> for ParamSource {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Param {
 	pub name: String,
 	pub required: bool,

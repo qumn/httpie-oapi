@@ -1,8 +1,11 @@
 use super::Method;
 use super::Param;
+use anyhow::{Context, Result};
 use openapiv3::{OpenAPI, ReferenceOr};
+use serde::{Deserialize, Serialize};
+use std::path::Path;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EndPoint {
 	pub method: Method,
 	pub path: String,
@@ -27,7 +30,7 @@ impl EndPoint {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EndPoints(Vec<EndPoint>);
 
 impl EndPoints {
@@ -43,16 +46,24 @@ impl EndPoints {
 		self.0.iter().collect()
 	}
 
-	pub fn parse_json(path: impl AsRef<str>) -> Self {
-		let data = std::fs::read_to_string(path.as_ref()).unwrap_or_else(|e| {
-			eprintln!("Failed to read OpenAPI file '{}': {}", path.as_ref(), e);
-			std::process::exit(1);
-		});
-		let openapi: OpenAPI = serde_json::from_str(&data).unwrap_or_else(|e| {
-			eprintln!("Failed to parse OpenAPI JSON: {}", e);
-			std::process::exit(1);
-		});
-		EndPoints::from(openapi)
+	pub fn try_from_openapi(data: impl AsRef<str>) -> Result<Self> {
+		let openapi: OpenAPI = serde_json::from_str(data.as_ref())?;
+		Ok(EndPoints::from(openapi))
+	}
+
+	/// Try to parse endpoints from a JSON file, returning Result
+	pub fn try_from_json(path: impl AsRef<Path>) -> Result<Self> {
+		let path = path.as_ref();
+		let data = std::fs::read_to_string(path)
+			.with_context(|| format!("Failed to read endpoints file: {}", path.display()))?;
+
+		serde_json::from_str(&data)
+			.with_context(|| format!("Failed to parse endpoints JSON from file: {}", path.display()))
+	}
+
+	pub fn save_to_file(&self, path: impl AsRef<Path>) -> std::io::Result<()> {
+		let content = serde_json::to_string_pretty(self)?;
+		std::fs::write(path, content)
 	}
 }
 

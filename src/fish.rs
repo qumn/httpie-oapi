@@ -3,15 +3,15 @@ use std::io::Write;
 const FISH_COMPLETE_TEMPLATE: &str = r#"
 complete -e http
 function __httpie_openapi_complete
-		echo begin complete >~/httpie-complete.log
+	echo begin complete >~/httpie-complete.log
     set -l cmdline (commandline -cp)
     set -l cursor (commandline -C)
-		echo "command: " "httpie-oapi complete  --file $OPENAPI_FILE --line "$cmdline" --cursor-pos $cursor" >~/httpie-complete.log
-    httpie-oapi complete --file $OPENAPI_FILE --line "$cmdline" --cursor-pos $cursor
+	echo "command: " "httpie-oapi complete  --name $HTTPIE_API_NAME --line "$cmdline" --cursor-pos $cursor" >~/httpie-complete.log
+    httpie-oapi complete --name $HTTPIE_API_NAME --line "$cmdline" --cursor-pos $cursor
 end
 
-# Set OpenAPI file path
-set -g OPENAPI_FILE ~/openapi.json
+# Set default API name (will be enhanced in future commits)
+set -g HTTPIE_API_NAME "default"
 
 # Add OpenAPI-aware completion for http command
 complete -c http -n 'not __fish_seen_argument -w GET -w POST -w PUT -w DELETE -w PATCH -w HEAD -w OPTIONS' \
