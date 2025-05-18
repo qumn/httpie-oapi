@@ -21,8 +21,12 @@ function h
         if test (count $parts) -ge 2
             set -l method $parts[1]
             set -l url $parts[2..-1]
-            # Convert to http command and insert into command line
-            commandline -r "http $method $url"
+            
+            # Get default options from environment variable
+            set -l default_opts (set -q HTTPIE_DEFAULT_OPTS && echo $HTTPIE_DEFAULT_OPTS || echo "")
+            
+            # Convert to http command with default options and insert into command line
+            commandline -r "http $default_opts $method $url "
         end
     end
 end
