@@ -1,13 +1,15 @@
 use anyhow::Context;
 use clap::{ArgAction, Args};
+use tracing::debug;
 
 use crate::config::Config;
+use crate::openapi::ApiSpec;
 
 #[derive(Args, Debug)]
 pub struct PathCommand {
-	/// Name of the API service
+	/// Name of the API service (optional, show all APIs if not provided)
 	#[arg(short, long, value_name = "NAME")]
-	name: String,
+	name: Option<String>,
 
 	/// Optional filter to match specific paths
 	#[arg(long, value_name = "PATTERN")]
@@ -24,12 +26,32 @@ pub struct PathCommand {
 
 impl PathCommand {
 	pub(super) fn run(&self, config: &Config) -> anyhow::Result<()> {
-		let api =
-			config.get_api(&self.name).with_context(|| format!("API '{}' not found", self.name))?;
+		match &self.name {
+			Some(name) => {
+				// Show paths for a specific API
+				debug!("Showing paths for API: {}", name);
+				let api = config.get_api(name)
+					.with_context(|| format!("API '{}' not found", name))?;
+				self.show_api_paths(api)
+			}
+			None => {
+				// Show paths for all APIs
+				debug!("Showing paths for all APIs");
+				for api in config.list_apis() {
+					self.show_api_paths(api)?;
+				}
+				Ok(())
+			}
+		}
+	}
 
+	fn show_api_paths(&self, api: &ApiSpec) -> anyhow::Result<()> {
 		let endpoints = api.get_endpoints();
-		let filtered: Vec<_> =
-			if let Some(pattern) = &self.pattern { endpoints.filter(pattern) } else { endpoints.all() };
+		let filtered: Vec<_> = if let Some(pattern) = &self.pattern {
+			endpoints.filter(pattern)
+		} else {
+			endpoints.all()
+		};
 
 		for endpoint in filtered {
 			if self.fish {
