@@ -18,6 +18,12 @@ impl ParamSource {
 			ParamSource::Header => ":",
 		}
 	}
+	pub fn httpie_param_prefix(&self) -> &'static str {
+		match self {
+			ParamSource::Path => ":",
+			_ => "",
+		}
+	}
 }
 
 impl From<&str> for ParamSource {
@@ -46,7 +52,11 @@ impl Param {
 		let desc = self.description.as_deref().unwrap_or(&self.name);
 		let desc = if self.required { desc.to_string() } else { format!("[{}]", desc) };
 
-		format!("{}{}\t{}", self.name, self.source.httpie_operator(), desc)
+		format!("{}\t{}", self.httpie_param_format(), desc)
+	}
+
+	pub fn httpie_param_format(&self) -> String {
+		format!("{}{}{}", self.source.httpie_param_prefix(), self.name, self.source.httpie_operator())
 	}
 }
 

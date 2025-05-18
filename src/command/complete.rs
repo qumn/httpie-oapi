@@ -89,7 +89,7 @@ impl CompleteCommand {
 		for ep in matched_api.get_endpoints().filter(path) {
 			tracing::info!("Found matching endpoint: {}", ep.path);
 			for param in ep.get_params_sort() {
-				if !tokens.has_token_starting_with(&param.name) {
+				if !tokens.has_token_starting_with(&param.httpie_param_format()) {
 					println!("{}", param.fish_complete_format());
 				}
 			}

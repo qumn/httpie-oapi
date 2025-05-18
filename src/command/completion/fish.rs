@@ -1,12 +1,18 @@
 use std::io::Write;
 
 const FISH_COMPLETE_TEMPLATE: &str = r#"
+# Remove default http completion
 complete -e http
+
+# Override http command to handle path variables
+function http --wraps http
+    set -l arguments (httpie-oapi path-var -- $argv)
+    eval command http $arguments
+end
+
 function __httpie_openapi_complete
-	echo begin complete >~/httpie-complete.log
     set -l cmdline (commandline -cp)
     set -l cursor (commandline -C)
-	echo "command: " "httpie-oapi complete --line "$cmdline" --cursor-pos $cursor" >~/httpie-complete.log
     httpie-oapi complete --line "$cmdline" --cursor-pos $cursor
 end
 
@@ -70,10 +76,10 @@ end
 complete -c http -f -n 'not __fish_seen_argument -w GET -w POST -w PUT -w DELETE -w PATCH -w HEAD -w OPTIONS; and not __httpie_need_file_completion' \
     -a '(__httpie_openapi_complete)'
 
-# the content come from https://github.com/httpie/cli/blob/master/extras/httpie-completion.fish
 # Add custom file completion that preserves the prefix
 complete -c http -f -n '__httpie_need_file_completion' -a '(__httpie_file_complete)'
 
+# the content come from https://github.com/httpie/cli/blob/master/extras/httpie-completion.fish
 function __fish_httpie_styles
     printf '%s\n' abap algol algol_nu arduino auto autumn borland bw colorful default emacs friendly fruity gruvbox-dark gruvbox-light igor inkpot lovelace manni material monokai murphy native paraiso-dark paraiso-light pastie perldoc pie pie-dark pie-light rainbow_dash rrt sas solarized solarized-dark solarized-light stata stata-dark stata-light tango trac vim vs xcode zenburn
 end

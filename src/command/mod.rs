@@ -3,6 +3,7 @@ mod complete;
 mod completion;
 mod param;
 mod path;
+mod path_var;
 
 use api_spec::ApiSpecCommands;
 use clap::Parser;
@@ -10,6 +11,7 @@ use complete::CompleteCommand;
 use completion::CompletionsCommand;
 use param::ParamCommand;
 use path::PathCommand;
+use path_var::PathVarCommand;
 
 use crate::config::Config;
 
@@ -33,6 +35,9 @@ enum Commands {
 	/// Manage OpenAPI specifications
 	#[command(subcommand)]
 	Spec(ApiSpecCommands),
+	/// Process path variables in URLs
+	#[command(name = "path-var")]
+	PathVar(PathVarCommand),
 }
 
 impl Command {
@@ -43,6 +48,7 @@ impl Command {
 			Commands::Complete(complete_command) => complete_command.run(config),
 			Commands::Completions(completions_command) => completions_command.run(),
 			Commands::Spec(spec_command) => spec_command.run(config),
+			Commands::PathVar(path_var_command) => path_var_command.run(),
 		}
 	}
 }

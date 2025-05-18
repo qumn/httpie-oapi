@@ -34,6 +34,37 @@ impl EndPoint {
 		let summary = self.summary.as_deref().unwrap_or(&self.path);
 		format!("{}{}\t{}", base_url.as_ref(), self.path, summary)
 	}
+
+	/// Convert OpenAPI path format to our path format
+	/// 
+	/// Converts path parameters from OpenAPI format {param} to our format :param
+	/// Examples:
+	/// - /users/{id} -> /users/:id
+	/// - /users/{userId}/posts/{postId} -> /users/:userId/posts/:postId
+	fn convert_path_format(path: &str) -> String {
+		let mut result = String::with_capacity(path.len());
+		let mut chars = path.chars().peekable();
+		
+		while let Some(c) = chars.next() {
+			if c == '{' {
+				// Start of a path parameter
+				result.push(':');
+				// Collect the parameter name until we find the closing brace
+				while let Some(&next) = chars.peek() {
+					if next == '}' {
+						chars.next(); // consume the '}'
+						break;
+					}
+					result.push(chars.next().unwrap());
+				}
+			} else {
+				result.push(c);
+			}
+		}
+		
+		debug!("Converted path format: {} -> {}", path, result);
+		result
+	}
 }
 
 impl EndPoints {
@@ -86,6 +117,10 @@ impl From<OpenAPI> for EndPoints {
 				}
 			};
 
+			// Convert path format from OpenAPI to our format
+			let converted_path = EndPoint::convert_path_format(path_str);
+			debug!("Converted path format: {} -> {}", path_str, converted_path);
+
 			let common_params = Self::extract_parameters(&path.parameters, &api);
 			debug!("Found {} common parameters for path: {}", common_params.len(), path_str);
 
@@ -122,7 +157,7 @@ impl From<OpenAPI> for EndPoints {
 
 				endpoints.push(EndPoint {
 					method: method_ty,
-					path: path_str.clone(),
+					path: converted_path.clone(),
 					summary: op.summary.clone(),
 					params,
 				});
@@ -202,6 +237,30 @@ impl EndPoints {
 				warn!("Request body is a reference, which is not supported");
 				Vec::new()
 			}
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_convert_path_format() {
+		let test_cases = vec![
+			("/users/{id}", "/users/:id"),
+			("/users/{userId}/posts/{postId}", "/users/:userId/posts/:postId"),
+			("/api/v1/users/{id}/orders/{orderId}", "/api/v1/users/:id/orders/:orderId"),
+			("/users/{id}/posts/{postId}/comments/{commentId}", "/users/:id/posts/:postId/comments/:commentId"),
+			("/users", "/users"),
+			("/users/{id}", "/users/:id"),
+			("/users/{id}/", "/users/:id/"),
+			("/{id}", "/:id"),
+		];
+
+		for (input, expected) in test_cases {
+			let result = EndPoint::convert_path_format(input);
+			assert_eq!(result, expected, "Failed to convert path: {}", input);
 		}
 	}
 }
