@@ -10,6 +10,23 @@ function http --wraps http
     eval command http $arguments
 end
 
+# Function to select an endpoint using fzf and convert it to http command
+function h
+    # Get all endpoints and pipe to fzf
+    set -l selected (httpie-oapi path | fzf --height 40% --border --preview 'echo {}' --preview-window=down:3:wrap)
+    
+    if test -n "$selected"
+        # Split the selected line into method and url
+        set -l parts (string split ' ' -- $selected)
+        if test (count $parts) -ge 2
+            set -l method $parts[1]
+            set -l url $parts[2..-1]
+            # Convert to http command and insert into command line
+            commandline -r "http $method $url"
+        end
+    end
+end
+
 function __httpie_openapi_complete
     set -l cmdline (commandline -cp)
     set -l cursor (commandline -C)
