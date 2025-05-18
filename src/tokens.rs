@@ -1,19 +1,17 @@
-use shell_words;
-
-#[derive(Debug, Clone)]
-pub struct Token {
-	pub text:  String,
-	pub start: usize,
-	pub end:   usize,
-}
-
 #[derive(Debug)]
-pub struct CommandLineTokens {
-	tokens:     Vec<Token>,
+pub struct Tokens {
+	tokens: Vec<Token>,
 	cursor_pos: usize,
 }
 
-impl CommandLineTokens {
+#[derive(Debug, Clone)]
+pub struct Token {
+	pub text: String,
+	pub start: usize,
+	pub end: usize,
+}
+
+impl Tokens {
 	pub fn new(line: &str, cursor_pos: usize) -> Self {
 		let mut tokens = Vec::new();
 		let mut current_pos = 0;
@@ -59,8 +57,6 @@ impl CommandLineTokens {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
-
 	/// # Examples
 	///
 	/// ```
@@ -74,7 +70,7 @@ mod tests {
 			let line = $line;
 			let cursor_pos = line.find('|').expect("No cursor position marker '|' found");
 			let line = line.replace('|', "");
-			CommandLineTokens::new(&line, cursor_pos)
+			super::Tokens::new(&line, cursor_pos)
 		}};
 	}
 

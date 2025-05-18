@@ -5,18 +5,18 @@ use openapiv3::{OpenAPI, ReferenceOr, Schema};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
 
-use super::{Method, Param};
 use super::reference::resolve_schema_reference;
+use super::{Method, Param};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EndPoints(Vec<EndPoint>);
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EndPoint {
-	pub method:  Method,
-	pub path:    String,
+	pub method: Method,
+	pub path: String,
 	pub summary: Option<String>,
-	pub params:  Vec<Param>,
+	pub params: Vec<Param>,
 }
 
 impl EndPoint {
@@ -26,11 +26,13 @@ impl EndPoint {
 		sorted
 	}
 
-	pub fn fzf_list_format(&self) -> String { format!("{} {}", self.method, self.path) }
+	pub fn fzf_list_format(&self, base_url: impl AsRef<str>) -> String {
+		format!("{} {}{}", self.method, base_url.as_ref(), self.path)
+	}
 
-	pub fn fish_complete_format(&self) -> String {
+	pub fn fish_complete_format(&self, base_url: impl AsRef<str>) -> String {
 		let summary = self.summary.as_deref().unwrap_or(&self.path);
-		format!("{}\t{}", self.path, summary)
+		format!("{}{}\t{}", base_url.as_ref(), self.path, summary)
 	}
 }
 
@@ -43,7 +45,9 @@ impl EndPoints {
 		self.0.iter().find(|e| e.path == path.as_ref())
 	}
 
-	pub fn all(&self) -> Vec<&EndPoint> { self.0.iter().collect() }
+	pub fn all(&self) -> Vec<&EndPoint> {
+		self.0.iter().collect()
+	}
 
 	pub fn try_from_openapi(data: impl AsRef<str>) -> Result<Self> {
 		let openapi: OpenAPI = serde_json::from_str(data.as_ref())?;

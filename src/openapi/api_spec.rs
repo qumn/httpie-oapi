@@ -1,16 +1,17 @@
-use super::EndPoints;
 use crate::config::Config;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use url::Url;
 
+use super::EndPoints;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiSpec {
 	/// Name of the API service
 	pub name: String,
 	/// URL of the OpenAPI/Swagger specification
-	pub url: String,
+	pub spec_url: String,
 	/// Base URL for the API service
 	pub base_url: String,
 	/// Cached endpoints, loaded on demand
@@ -18,10 +19,13 @@ pub struct ApiSpec {
 	endpoints: RefCell<Option<EndPoints>>,
 }
 
+// 同步修改所有相关方法名
 impl ApiSpec {
+	// ← 同步修改
 	/// Create a new ApiSpec instance
-	pub fn new(name: String, url: String, base_url: String) -> Self {
-		Self { name, url, base_url, endpoints: RefCell::new(None) }
+	pub fn new(name: String, spec_url: String, base_url: String) -> Self {
+		// ← 参数名调整
+		Self { name, spec_url, base_url, endpoints: RefCell::new(None) }
 	}
 
 	/// Get the endpoints for this API spec. If cached in memory, return that.
@@ -50,8 +54,8 @@ impl ApiSpec {
 	/// Force download the OpenAPI spec and update both file and memory cache
 	pub fn refresh_endpoints_cache(&self) -> EndPoints {
 		// Validate URL
-		let url = Url::parse(&self.url).unwrap_or_else(|e| {
-			eprintln!("Invalid OpenAPI URL '{}': {}", self.url, e);
+		let url = Url::parse(&self.spec_url).unwrap_or_else(|e| {
+			eprintln!("Invalid OpenAPI URL '{}': {}", self.spec_url, e);
 			std::process::exit(1);
 		});
 
@@ -59,7 +63,10 @@ impl ApiSpec {
 		let client = Client::new();
 		let response = client.get(url).send().unwrap_or_else(|e| {
 			eprintln!("Failed to fetch OpenAPI spec: {}", e);
-			eprintln!("Please verify that the Swagger/OpenAPI URL '{}' is correct and accessible", self.url);
+			eprintln!(
+				"Please verify that the Swagger/OpenAPI URL '{}' is correct and accessible",
+				self.spec_url
+			);
 			std::process::exit(1);
 		});
 
@@ -81,7 +88,10 @@ impl ApiSpec {
 		// Parse OpenAPI spec
 		let endpoints: EndPoints = EndPoints::try_from_openapi(&spec_json).unwrap_or_else(|e| {
 			eprintln!("Failed to parse OpenAPI JSON: {}", e);
-			eprintln!("Please verify that the URL '{}' points to a valid Swagger/OpenAPI specification", self.url);
+			eprintln!(
+				"Please verify that the URL '{}' points to a valid Swagger/OpenAPI specification",
+				self.spec_url
+			);
 			std::process::exit(1);
 		});
 
