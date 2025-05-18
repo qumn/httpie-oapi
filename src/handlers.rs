@@ -81,7 +81,7 @@ pub fn handle_complete(args: &CompleteArgs) {
 	if matched_api.is_none() {
 		tracing::info!("No matching API found, displaying all APIs");
 		for api in apis {
-			println!("{}\t{}", api.base_url, api.name);
+			println!("{}/\t{}", api.base_url, api.name);
 		}
 		return;
 	}

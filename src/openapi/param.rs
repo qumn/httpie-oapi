@@ -1,4 +1,4 @@
-use openapiv3::Parameter;
+use openapiv3::{Parameter, Schema, SchemaKind, Type};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -72,5 +72,30 @@ impl TryFrom<&Parameter> for Param {
 			source,
 			description: parameter_data.description.clone(),
 		})
+	}
+}
+
+impl Param {
+	pub fn try_from_schema(schema: &Schema) -> Result<Vec<Self>, String> {
+		match &schema.schema_kind {
+			SchemaKind::Type(Type::Object(object_type)) => {
+				let mut params = Vec::new();
+				for (name, property) in &object_type.properties {
+					let required = object_type.required.contains(name);
+					let description = match property {
+						openapiv3::ReferenceOr::Item(schema) => schema.schema_data.description.clone(),
+						openapiv3::ReferenceOr::Reference { .. } => None,
+					};
+					params.push(Self {
+						name: name.clone(),
+						required,
+						source: ParamSource::Body,
+						description,
+					});
+				}
+				Ok(params)
+			}
+			_ => Err("Schema must be an object type".to_string()),
+		}
 	}
 }
