@@ -21,9 +21,10 @@ pub(super) struct CompleteCommand {
 impl CompleteCommand {
 	/// Handle command line completion with smart suggestions based on context
 	///
-	/// This command is used internally by the fish shell completion system to provide
-	/// intelligent command line completion for HTTPie commands. It analyzes the current
-	/// command line context and suggests appropriate completions based on the following rules:
+	/// This command is used internally by the fish shell completion system to
+	/// provide intelligent command line completion for HTTPie commands. It
+	/// analyzes the current command line context and suggests appropriate
+	/// completions based on the following rules:
 	///
 	/// 1. If no token contains any base_url, show all available API specs
 	///    Example: "http " -> shows all registered API base URLs
@@ -34,11 +35,13 @@ impl CompleteCommand {
 	/// 3. If cursor is on the base_url token, show all paths for that API
 	///    Example: "http https://api.example.com" -> shows all available endpoints
 	///
-	/// 4. If cursor is not on base_url token, show all parameters for the matched path
-	///    Example: "http https://api.example.com/users " -> shows all parameters for /users
+	/// 4. If cursor is not on base_url token, show all parameters for the matched
+	///    path Example: "http https://api.example.com/users " -> shows all
+	///    parameters for /users
 	///
 	/// The completion suggestions are formatted for fish shell, with descriptions
-	/// and proper parameter formatting (e.g., query parameters with ==, headers with :).
+	/// and proper parameter formatting (e.g., query parameters with ==, headers
+	/// with :).
 	pub(super) fn run(&self, config: &Config) -> anyhow::Result<()> {
 		tracing::info!(
 			"Processing completion request: line={}, cursor_pos={}",
@@ -63,7 +66,7 @@ impl CompleteCommand {
 
 		// If no base_url is found in any token, show all API specs
 		let (Some(matched_api), Some(matched_token)) = (matched_api, matched_token) else {
-			tracing::info!("No base_url found in tokens, showing all API specs");
+			tracing::debug!("No base_url found in tokens, showing all API specs");
 			for api in apis {
 				println!("{}/\t{}", api.base_url, api.name);
 			}
@@ -72,8 +75,9 @@ impl CompleteCommand {
 
 		// Step 2 & 3: Check if cursor is on the base_url token
 		if let Some(current_token) = tokens.current_token() {
+			tracing::debug!("Current token: {}", current_token.text);
 			if current_token.text.starts_with(&matched_api.base_url) {
-				tracing::info!("Cursor is on base_url token, showing all paths");
+				tracing::debug!("Cursor is on base_url token, showing all paths");
 				for ep in matched_api.get_endpoints().all() {
 					println!("{}", ep.fish_complete_format(&matched_api.base_url));
 				}
@@ -87,7 +91,7 @@ impl CompleteCommand {
 		tracing::info!("Looking for parameters for path: {}", path);
 
 		for ep in matched_api.get_endpoints().filter(path) {
-			tracing::info!("Found matching endpoint: {}", ep.path);
+			tracing::debug!("Found matching endpoint: {}", ep.path);
 			for param in ep.get_params_sort() {
 				if !tokens.has_token_starting_with(&param.httpie_param_format()) {
 					println!("{}", param.fish_complete_format());

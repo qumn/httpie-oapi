@@ -52,5 +52,5 @@ fn init_logging() {
 		.with(fmt::Layer::default().with_writer(file_appender))
 		.init();
 
-	tracing::info!("日志系统初始化完成");
+	tracing::info!("Logging system initialized");
 }
