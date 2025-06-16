@@ -10,6 +10,12 @@ A command-line tool that enhances HTTPie with OpenAPI specification support, pro
 - 🐟 Fish shell completion support
 - 🔄 Automatic API specification caching
 
+## Demo
+
+![Demo](./docs/demo.gif)
+
+Watch httpie-oapi in action! The demo shows how to add an OpenAPI specification, explore available endpoints with smart completion, and execute API requests seamlessly.
+
 ## TODO Features
 
 - [ ] Support for multiple OpenAPI specification formats (YAML, JSON)
@@ -40,33 +46,13 @@ cargo install httpie-oapi
 httpie-oapi spec list
 
 # Add a new API specification
-httpie-oapi spec save --name myapi --url https://api.example.com/openapi.json --base-url https://api.example.com
-
-# Remove an API specification
-httpie-oapi spec remove myapi
+httpie-oapi spec add petstore https://petstore3.swagger.io/api/v3/openapi.json -b https://petstore3.swagger.io/api/v3
 
 # Refresh API specification cache
-httpie-oapi spec refresh myapi
-```
+httpie-oapi spec refresh petstore
 
-### Command Line Completion
-
-The tool provides intelligent command-line completion based on the OpenAPI specification:
-
-1. When no base URL is matched, it shows all available API specifications
-2. When the cursor is on a base URL token, it shows all paths for that API
-3. When both base URL and path are matched, it shows all available parameters
-
-Example:
-```bash
-# Shows all registered APIs
-httpie-oapi complete "http "
-
-# Shows all paths for the matched API
-httpie-oapi complete "http https://api.example.com"
-
-# Shows all parameters for the matched path
-httpie-oapi complete "http https://api.example.com/users"
+# Remove an API specification
+httpie-oapi spec remove petstore
 ```
 
 ### Fish Shell Integration
@@ -83,18 +69,6 @@ The tool stores API specifications and configuration in:
 - `~/.config/httpie-oapi/config.toml` - Configuration file
 - `~/.local/state/httpie-oapi/` - API specification cache
 
-## Development
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/httpie-oapi.git
-
-# Build the project
-cargo build
-
-# Run tests
-cargo test
-```
 
 ## License
 
